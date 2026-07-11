@@ -18,7 +18,6 @@ document.getElementById("sendButton").addEventListener("click", async () => {
 
   let contacts = [];
 
-  // Parse according to active selection option
   if (activeTab === "manual") {
     const raw = document.getElementById("manualNums").value;
     contacts = raw.split(",").map(n => n.trim()).filter(n => n.length > 0);
@@ -37,7 +36,6 @@ document.getElementById("sendButton").addEventListener("click", async () => {
     return;
   }
 
-  // Handle Attachment Conversion
   let attachment = null;
   const attachInput = document.getElementById("attachmentFile");
   if (attachInput.files.length > 0) {
@@ -50,13 +48,16 @@ document.getElementById("sendButton").addEventListener("click", async () => {
     return;
   }
 
-  log.innerText = `Starting loop for ${contacts.length} numbers...`;
+  log.innerText = `Starting campaign for ${contacts.length} numbers...`;
 
   for (let i = 0; i < contacts.length; i++) {
     const phoneNumber = contacts[i];
     log.innerText = `Sending to ${phoneNumber} (${i + 1}/${contacts.length})`;
 
-    await new Promise(resolve => setTimeout(resolve, i * delaySec * 1000));
+    // Wait for the specified delay before running the next injection
+    if (i > 0) {
+      await new Promise(resolve => setTimeout(resolve, delaySec * 1000));
+    }
 
     try {
       await chrome.scripting.executeScript({
@@ -68,7 +69,7 @@ document.getElementById("sendButton").addEventListener("click", async () => {
       console.error(err);
     }
   }
-  log.innerText = "All messages and attachments processed successfully.";
+  log.innerText = "All messages processed successfully.";
 });
 
 function parseCSV(file) {
@@ -95,52 +96,68 @@ function fileToBase64(file) {
   });
 }
 
-// Injected Core Automation Flow
+// Fixed core automation function with reliable text submission
 async function automateWhatsApp(msg, phone, fileObj) {
-  // 1. Direct deep-link routing context switch without reloading state
   window.location.href = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
   
-  function waitForSelector(selector, timeout = 20000) {
+  function waitForSelector(selector, timeout = 15000) {
     return new Promise((res, rej) => {
       const start = Date.now();
       const timer = setInterval(() => {
         const el = document.querySelector(selector);
         if (el) { clearInterval(timer); res(el); }
         if (Date.now() - start > timeout) { clearInterval(timer); rej(); }
-      }, 400);
+      }, 300);
     });
   }
 
   try {
-    // 2. Locate main interactive text pane area
+    // 1. Locate the message box where text is typed via the deep link URL
     const inputField = await waitForSelector('div[contenteditable="true"][data-tab="10"]');
     
-    // 3. Process Attachment Layer if supplied
+    // Brief rest to let the input register completely
+    await new Promise(r => setTimeout(r, 800));
+
     if (fileObj) {
+      // Attachment route
       const attachBtn = await waitForSelector('span[data-icon="plus"], div[title="Attach"]');
       attachBtn.click();
 
-      // Convert dynamic blob architecture 
       const response = await fetch(`data:${fileObj.contentType};base64,${fileObj.base64}`);
       const blob = await response.blob();
       const file = new File([blob], fileObj.filename, { type: fileObj.contentType });
 
-      // Find file hidden engine inputs inside page DOM
       const fileInputEl = document.querySelector('input[type="file"]');
       const dataTransfer = new DataTransfer();
       dataTransfer.items.add(file);
       fileInputEl.files = dataTransfer.files;
       fileInputEl.dispatchEvent(new Event('change', { bubbles: true }));
 
-      // Wait for attachment preview pane confirmation action button
       const mediaSendBtn = await waitForSelector('span[data-icon="send"], div[role="button"] span[data-icon="checkmark-medium"]');
       mediaSendBtn.click();
     } else {
-      // 4. Default structural message send event trigger fallback
-      const sendBtn = await waitForSelector('span[data-icon="send"]');
-      sendBtn.click();
+      // 2. Text Route: Simulate pressing the physical "Enter" key on the input box
+      const enterEvent = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        which: 13,
+        bubbles: true,
+        cancelable: true
+      });
+      inputField.dispatchEvent(enterEvent);
+
+      // 3. Fallback Click Option: If Enter event didn't fire, try modern button selectors
+      setTimeout(() => {
+        const sendBtn = document.querySelector('span[data-icon="send"]') || 
+                        document.querySelector('button[aria-label="Send message"]') ||
+                        document.querySelector('button span[data-icon="send"]');
+        if (sendBtn) {
+          sendBtn.closest('button')?.click() || sendBtn.click();
+        }
+      }, 200);
     }
   } catch(e) {
-    console.log("Routing execution interrupted or contact matching timed out.");
+    console.log("Navigation step timed out or element was missing.");
   }
 }
