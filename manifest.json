@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Hasan Auto WP Sender",
+  "version": "2.0",
+  "description": "Modern WhatsApp automation tool for sending messages and file attachments safely.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

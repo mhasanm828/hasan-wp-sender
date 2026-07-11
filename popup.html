@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasan Auto WP Sender</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-card">
+    <header>
+      <h2>Hasan Auto WP Sender</h2>
+      <p class="subtitle">Next-Gen Bulk Messenger</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="manual">Manual</button>
+      <button class="tab-btn" data-tab="bulk">Bulk Text</button>
+      <button class="tab-btn" data-tab="csv">CSV Upload</button>
+    </div>
+
+    <!-- Target Numbers Inputs -->
+    <div class="tab-content">
+      <div id="manualInput" class="tab-pane active">
+        <label>Phone Numbers (Comma Separated)</label>
+        <input type="text" id="manualNums" placeholder="e.g. +8801700000000, +8801800000000">
+      </div>
+      
+      <div id="bulkInput" class="tab-pane">
+        <label>Bulk Numbers (One per line)</label>
+        <textarea id="bulkNums" rows="3" placeholder="8801700000000&#10;8801800000000"></textarea>
+      </div>
+      
+      <div id="csvInput" class="tab-pane">
+        <label>Upload Contacts CSV File</label>
+        <div class="file-dropzone">
+          <input type="file" id="contactFile" accept=".csv">
+          <span>Click to choose or drop .csv file</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Message & Attachments -->
+    <div class="form-group">
+      <label>Your Message</label>
+      <textarea id="message" rows="3" placeholder="Type your dynamic message here..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Attach File / Media</label>
+      <input type="file" id="attachmentFile">
+    </div>
+
+    <!-- Delay Configuration -->
+    <div class="form-group inline-group">
+      <label>Delay (Seconds):</label>
+      <input type="number" id="delayTime" value="5" min="2" max="60">
+    </div>
+
+    <!-- Action Action Button -->
+    <button id="sendButton" class="btn-primary">Initialize Campaign</button>
+    
+    <div id="statusLog" class="status-log">Ready.</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
